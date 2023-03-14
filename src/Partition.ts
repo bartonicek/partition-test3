@@ -1,12 +1,9 @@
-import {
-  JSONProduct,
-  fromJSON,
-  match,
-  reduceWithIndices,
-  subset,
-} from "./funs";
+import { Accessor, createEffect } from "solid-js";
+import { Dict } from "./Dict";
+import { JSONProduct, call, fromJSON, match, reduceAt, subset } from "./funs";
 
 const partitionNames = ["whole", "object", "marker", "d", "e", "f"];
+type FactorRecord = { [key: string]: Accessor<string[] | number[]> };
 
 export class Part {
   tag: string;
@@ -41,13 +38,13 @@ export class Part {
   };
 
   labels = (): Record<string, any> => {
-    const { parent, indices, reducers, ownLabels } = this;
+    const { tag: partTag, parent, indices, reducers, ownLabels } = this;
     const reducedLabels = {} as Record<string, any>;
-    for (const { tag, array, reducefn, initialValue } of reducers.values())
-      reducedLabels[this.tag + `{${tag}}`] = array.reduce(
-        indices.length ? reduceWithIndices(reducefn, indices) : reducefn,
-        initialValue
-      );
+    for (let { tag, array, reducefn, initialValue } of reducers.values()) {
+      if (indices.length) reducefn = reduceAt(reducefn, indices);
+      const reduceTag = partTag + `{${tag}}`;
+      reducedLabels[reduceTag] = array.reduce(reducefn, initialValue);
+    }
     return Object.assign({}, ownLabels, parent?.labels(), reducedLabels);
   };
 }
@@ -55,16 +52,21 @@ export class Part {
 export class Partition {
   parts: Part[];
   parent?: Partition;
+  factors: FactorRecord;
   reducers: Reducer<any, any>[];
 
-  constructor(parent?: Partition) {
+  constructor(factors: FactorRecord, parent?: Partition) {
     this.parent = parent;
     this.parts = [];
+    this.factors = factors;
     this.reducers = [];
     if (!parent) this.parts.push(Part.of("whole", [], {}));
+
+    const labels = () => Dict.of(factors).map(call).flush(JSONProduct);
   }
 
-  static of = (parent?: Partition) => new Partition(parent);
+  static of = (factors: FactorRecord, parent?: Partition) =>
+    new Partition(factors, parent);
 
   level = (): number => (this.parent?.level() ?? -1) + 1;
 
@@ -75,10 +77,10 @@ export class Partition {
     return this;
   };
 
-  nest = (factors: Record<string, string[] | number[]>) => {
-    const labels = JSONProduct(factors);
+  nest = (factors: FactorRecord) => {
+    const labels = Dict.of(factors).map(call).flush(JSONProduct);
     const uniqueLabels = Array.from(new Set(labels));
-    const child = Partition.of(this);
+    const child = Partition.of(factors, this);
 
     for (const parentPart of this.parts.values()) {
       const { indices } = parentPart;

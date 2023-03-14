@@ -1,3 +1,5 @@
+import { isEmpty } from "./funs";
+
 export class Dict<T> {
   value: Record<string, T>;
 
@@ -14,5 +16,8 @@ export class Dict<T> {
     return Dict.of(result);
   };
 
-  flush = <U>(flushfn: (value: Record<string, T>) => U) => flushfn(this.value);
+  flush = <U>(flushfn: (value: Record<string, T>) => U) => {
+    if (isEmpty(this.value)) return;
+    return flushfn(this.value);
+  };
 }
