@@ -6,7 +6,7 @@ import {
   subset,
 } from "./funs";
 
-const letters = ["a", "b", "c", "d", "e", "f"];
+const partitionNames = ["whole", "object", "marker", "d", "e", "f"];
 
 export class Part {
   tag: string;
@@ -21,7 +21,7 @@ export class Part {
     labels: Record<string, any>,
     parent?: Part
   ) {
-    this.tag = tag;
+    this.tag = (parent?.tag ? parent.tag + "." : "") + tag;
     this.parent = parent;
     this.indices = indices;
     this.ownLabels = labels;
@@ -44,7 +44,7 @@ export class Part {
     const { parent, indices, reducers, ownLabels } = this;
     const reducedLabels = {} as Record<string, any>;
     for (const { tag, array, reducefn, initialValue } of reducers.values())
-      reducedLabels[this.tag + `[${tag}]`] = array.reduce(
+      reducedLabels[this.tag + `{${tag}}`] = array.reduce(
         indices.length ? reduceWithIndices(reducefn, indices) : reducefn,
         initialValue
       );
@@ -61,7 +61,7 @@ export class Partition {
     this.parent = parent;
     this.parts = [];
     this.reducers = [];
-    if (!parent) this.parts.push(Part.of("a0", [], {}));
+    if (!parent) this.parts.push(Part.of("whole", [], {}));
   }
 
   static of = (parent?: Partition) => new Partition(parent);
@@ -75,20 +75,20 @@ export class Partition {
     return this;
   };
 
-  nest = (factors: Record<string, string[]>) => {
+  nest = (factors: Record<string, string[] | number[]>) => {
     const labels = JSONProduct(factors);
     const uniqueLabels = Array.from(new Set(labels));
     const child = Partition.of(this);
 
-    for (const part of this.parts.values()) {
-      const { indices } = part;
-      const partLabels = indices.length ? subset(labels, indices) : labels;
+    for (const parentPart of this.parts.values()) {
+      const { indices } = parentPart;
+      const parentLabels = indices.length ? subset(labels, indices) : labels;
 
       for (const [i, label] of uniqueLabels.entries()) {
-        const tag = part.tag + letters[this.level() + 1] + i;
-        const indices = match(partLabels, label);
-        if (indices.length)
-          child.parts.push(Part.of(tag, indices, fromJSON(label), part));
+        const indices = match(parentLabels, label);
+        if (!indices.length) continue;
+        const tag = partitionNames[this.level() + 1] + i;
+        child.parts.push(Part.of(tag, indices, fromJSON(label), parentPart));
       }
     }
 
