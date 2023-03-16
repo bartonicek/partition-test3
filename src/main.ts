@@ -1,11 +1,10 @@
 import { Accessor, createEffect, createSignal } from "solid-js";
-import { Dict } from "./Dict";
-import { call, product, sum } from "./funs";
+import { product, sum } from "./funs";
 import { Partition } from "./Partition";
 
 const group = ["A", "B", "B", "C", "B", "A", "B"];
 const gender = ["M", "M", "M", "M", "F", "F", "F"];
-const marker = [0, 0, 1, 0, 1, 1, 0];
+const marker = [1, 2, 3, 1, 2, 3, 1];
 const arr1 = [1.1, 1.2, 1.1, 1.3, 1.4, 1.2, 1.1];
 
 const [groupS, setGroupS] = createSignal(group);
@@ -44,15 +43,3 @@ partition2.addReducer({
   reducefn: product,
   initialValue: 1,
 });
-
-setGenderS(() => Array(7).fill("M"));
-
-// console.log(partition2.parts[1].labels());
-
-// const labels = () => Dict.of(data).map(call).flush(JSONProduct);
-
-// createEffect(() => {
-//   console.log(labels());
-// });
-
-const empty = {};
