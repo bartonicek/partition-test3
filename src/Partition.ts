@@ -2,7 +2,7 @@ import { Accessor, createEffect } from "solid-js";
 import { Dict } from "./Dict";
 import { JSONProduct, call, fromJSON, match, reduceAt, subset } from "./funs";
 
-const partitionNames = ["whole", "object", "marker", "d", "e", "f"];
+const partitionNames = ["whole", "object", "mark", "d", "e", "f"];
 type FactorRecord = { [key: string]: Accessor<string[] | number[]> };
 
 export class Part {
@@ -14,6 +14,7 @@ export class Part {
 
   constructor(
     tag: string,
+    partition: Partition,
     indices: number[],
     labels: Record<string, any>,
     parent?: Part
@@ -22,15 +23,16 @@ export class Part {
     this.parent = parent;
     this.indices = indices;
     this.ownLabels = labels;
-    this.reducers = [];
+    this.reducers = partition.reducers;
   }
 
   static of = (
     tag: string,
+    partition: Partition,
     indices: number[],
     labels: Record<string, any>,
     parent?: Part
-  ) => new Part(tag, indices, labels, parent);
+  ) => new Part(tag, partition, indices, labels, parent);
 
   addReducer = <T, U>(reducer: Reducer<T, U>) => {
     this.reducers.push(reducer);
@@ -50,19 +52,40 @@ export class Part {
 }
 
 export class Partition {
-  parts: Part[];
+  parts: () => Part[];
   parent?: Partition;
   factors: FactorRecord;
   reducers: Reducer<any, any>[];
+  ids: () => string[];
 
   constructor(factors: FactorRecord, parent?: Partition) {
     this.parent = parent;
-    this.parts = [];
     this.factors = factors;
     this.reducers = [];
-    if (!parent) this.parts.push(Part.of("whole", [], {}));
+    this.ids = () => Dict.of(factors).map(call).flush(JSONProduct);
 
-    const labels = () => Dict.of(factors).map(call).flush(JSONProduct);
+    if (!parent) {
+      this.parts = () => [Part.of("whole", this, [], {})];
+      return this;
+    }
+
+    this.parts = () => {
+      const [ids, parentParts] = [this.ids(), this.parent?.parts()];
+      const uniqueIds = Array.from(new Set(ids)).sort();
+      const result = [];
+      for (const parentPart of parentParts!.values()) {
+        const { indices } = parentPart;
+        const parentIds = indices.length ? subset(ids, indices) : ids;
+
+        for (const [i, id] of uniqueIds.entries()) {
+          const indices = match(parentIds, id);
+          if (!indices.length) continue;
+          const tag = partitionNames[this.level()] + i;
+          result.push(Part.of(tag, this, indices, fromJSON(id), parentPart));
+        }
+      }
+      return result;
+    };
   }
 
   static of = (factors: FactorRecord, parent?: Partition) =>
@@ -72,28 +95,11 @@ export class Partition {
 
   addReducer = <T, U>(reducer: Reducer<T, U>) => {
     this.reducers.push(reducer);
-    this.parts.forEach((part) => part.addReducer(reducer));
     this.parent?.addReducer(reducer);
     return this;
   };
 
   nest = (factors: FactorRecord) => {
-    const labels = Dict.of(factors).map(call).flush(JSONProduct);
-    const uniqueLabels = Array.from(new Set(labels));
-    const child = Partition.of(factors, this);
-
-    for (const parentPart of this.parts.values()) {
-      const { indices } = parentPart;
-      const parentLabels = indices.length ? subset(labels, indices) : labels;
-
-      for (const [i, label] of uniqueLabels.entries()) {
-        const indices = match(parentLabels, label);
-        if (!indices.length) continue;
-        const tag = partitionNames[this.level() + 1] + i;
-        child.parts.push(Part.of(tag, indices, fromJSON(label), parentPart));
-      }
-    }
-
-    return child;
+    return Partition.of(factors, this);
   };
 }
