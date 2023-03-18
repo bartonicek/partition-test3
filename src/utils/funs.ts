@@ -1,6 +1,10 @@
 export const identity = (x: any) => x;
 export const call = (fn: Function) => fn();
+export const just = (x: any) => () => x;
 
+export const unique = (array: any[]) => Array.from(new Set(array));
+
+export const times = (y: number) => (x: number) => y * x;
 export const sum = (x: number, y: number) => x + y;
 export const product = (x: number, y: number) => x * y;
 
@@ -12,6 +16,16 @@ export const match = <T>(array: T[], value: T) =>
   array.flatMap((element, index) => (element === value ? index : []));
 export const subset = <T>(array: T[], indices: number[]) =>
   indices.map((i) => array[i]);
+
+export const throttle = (delay: number) => (fun: Function) => {
+  let lastTime = 0;
+  return (...args: any[]) => {
+    const now = new Date().getTime();
+    if (now - lastTime < delay) return;
+    lastTime = now;
+    fun(...args);
+  };
+};
 
 export const reduceAt =
   <T, U>(reducefn: ReduceFn<T, U>, indices: number[]): ReduceFn<T, U> =>
@@ -29,3 +43,5 @@ export const JSONProduct = (factors: Record<string, any[]>) => {
     return result;
   }, [] as string[]);
 };
+
+export const toInt = (x: string) => parseInt(x, 10);

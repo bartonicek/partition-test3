@@ -1,6 +1,13 @@
 import { Accessor, createEffect } from "solid-js";
-import { Dict } from "./Dict";
-import { JSONProduct, call, fromJSON, match, reduceAt, subset } from "./funs";
+import { Dict } from "../utils/Dict";
+import {
+  JSONProduct,
+  call,
+  fromJSON,
+  match,
+  reduceAt,
+  subset,
+} from "../utils/funs";
 
 const partitionNames = ["whole", "object", "mark", "d", "e", "f"];
 type FactorRecord = { [key: string]: Accessor<string[] | number[]> };

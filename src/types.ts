@@ -5,3 +5,6 @@ type Reducer<T, U> = {
   reducefn: ReduceFn<T, U>;
   initialValue: U;
 };
+
+type Tuple2<T> = [T, T];
+type Tuple4<T> = [T, T, T, T];
