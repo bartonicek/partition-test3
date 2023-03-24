@@ -1,6 +1,16 @@
+import { ReduceFn } from "../types";
+
 export const identity = (x: any) => x;
 export const call = (fn: Function) => fn();
-export const just = (x: any) => () => x;
+export const just =
+  <T>(x: T) =>
+  () =>
+    x;
+export const wrap = <T>(x: T) => [x];
+export const flow =
+  (...funs: ((x: any) => any)[]) =>
+  (x: any) =>
+    funs.reduce((a, b) => b(a), x);
 
 export const unique = (array: any[]) => Array.from(new Set(array));
 
@@ -43,5 +53,8 @@ export const JSONProduct = (factors: Record<string, any[]>) => {
     return result;
   }, [] as string[]);
 };
+
+export const unitSquare = () =>
+  [just([0]), just([0]), just([1]), just([1])] as const;
 
 export const toInt = (x: string) => parseInt(x, 10);

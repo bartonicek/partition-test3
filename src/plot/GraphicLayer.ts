@@ -1,73 +1,47 @@
 import { Accessor, createEffect } from "solid-js";
-import { GraphicStack, XYScale } from "./GraphicStack";
-import { globals } from "../globalpars";
 import { Primitive } from "../primitives/Primitive";
-import { Rectangles } from "../primitives/Rectangles";
-import { Line } from "../primitives/Line";
+import { GraphicStack } from "./GraphicStack";
 
 export class GraphicLayer {
-  tag: string;
-  width: Accessor<number>;
-  height: Accessor<number>;
+  signals: { width: Accessor<number>; height: Accessor<number> };
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  scales: { innerPct: XYScale; outerPct: XYScale };
 
   primitives: Primitive[];
 
-  constructor(tag: string, graphicStack: GraphicStack) {
-    this.tag = tag;
+  constructor(
+    graphicStack: GraphicStack,
+    width: Accessor<number>,
+    height: Accessor<number>
+  ) {
     this.primitives = [];
-
-    const size = graphicStack.handlers.size!;
-    this.width = tag === "outer" ? size.outerWidth : size.innerWidth;
-    this.height = tag === "outer" ? size.outerHeight : size.innerHeight;
+    this.signals = { width, height };
 
     const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d")!;
     this.canvas = canvas;
-    this.context = canvas.getContext("2d")!;
-
-    this.scales = graphicStack.scales;
-    const margins = size.margins;
-    const { innerPct, outerPct } = this.scales;
-
-    if (tag === "outer") {
-      const bgOpts = { colour: globals.marginColour };
-      const boxOpts = { width: 3 };
-
-      const background = new Rectangles([0], [0], [1], [1], outerPct, bgOpts);
-      const box = new Line([0, 0, 1], [1, 0, 0], innerPct, boxOpts);
-
-      this.addPrimitive(background);
-      this.addPrimitive(box);
-    }
-
-    if (tag === "base") {
-      const bgOpts = { colour: globals.backgroundColour };
-      const background = new Rectangles([0], [0], [1], [1], outerPct, bgOpts);
-      this.addPrimitive(background);
-    }
-
-    if (tag != "outer") {
-      canvas.style.marginLeft = margins[1]() + "px";
-      canvas.style.marginTop = margins[2]() + "px";
-    }
+    this.context = context;
 
     createEffect(() => {
-      [canvas.width, canvas.height] = [this.width(), this.height()];
+      canvas.width = this.signals.width();
+      canvas.height = this.signals.height();
       this.draw();
     });
   }
 
-  static of = (tag: string, graphicStack: GraphicStack) =>
-    new GraphicLayer(tag, graphicStack);
+  static of = (
+    graphicStack: GraphicStack,
+    width: Accessor<number>,
+    height: Accessor<number>
+  ) => new GraphicLayer(graphicStack, width, height);
 
   addPrimitive = (primitive: Primitive) => {
     this.primitives.push(primitive);
-    this.draw();
+    createEffect(() => this.draw());
   };
 
   draw = () => {
-    this.primitives.forEach((primitive) => primitive.draw(this.context));
+    this.context.clearRect(0, 0, this.signals.width(), this.signals.height());
+    this.primitives.forEach((primitive) => primitive.draw());
   };
 }
