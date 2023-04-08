@@ -1,5 +1,5 @@
 import { Accessor, createEffect } from "solid-js";
-import { globals } from "../globalpars";
+import { graphicParameters } from "../graphicParameters";
 import { Scale } from "../scales/Scale";
 import { withAlpha } from "../utils/graphicfuns";
 import { Primitive } from "./Primitive";
@@ -8,34 +8,30 @@ import { Options } from "../types";
 export class Points implements Primitive {
   x: Accessor<number[]>;
   y: Accessor<number[]>;
-  context: CanvasRenderingContext2D;
   scales: { x: Scale<number>; y: Scale<number> };
   options: Options;
 
   constructor(
     x: Accessor<number[]>,
     y: Accessor<number[]>,
-    context: CanvasRenderingContext2D,
     scales: { x: Scale<number>; y: Scale<number> },
     options?: Partial<Options>
   ) {
     this.x = x;
     this.y = y;
-    this.context = context;
     this.scales = scales;
-    this.options = Object.assign({}, globals, options);
+    this.options = Object.assign({}, graphicParameters, options);
   }
 
   static of = (
     x: Accessor<number[]>,
     y: Accessor<number[]>,
-    context: CanvasRenderingContext2D,
     scales: { x: Scale<number>; y: Scale<number> },
     options?: Partial<Options>
-  ) => new Points(x, y, context, scales, options);
+  ) => new Points(x, y, scales, options);
 
-  draw = () => {
-    const { x, y, context } = this;
+  draw = (context: CanvasRenderingContext2D) => {
+    const { x, y } = this;
     const { colour, alpha, radius } = this.options;
     const { canvas } = context;
 

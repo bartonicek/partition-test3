@@ -1,4 +1,4 @@
-export const globals = {
+export const graphicParameters = {
   radius: 5,
   width: 1,
   alpha: 1,

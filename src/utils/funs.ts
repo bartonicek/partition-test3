@@ -12,6 +12,18 @@ export const flow =
   (x: any) =>
     funs.reduce((a, b) => b(a), x);
 
+export const kth =
+  (k: number) =>
+  <T>(array: T[]) =>
+    array[k];
+export const prop =
+  <K extends string>(key: K) =>
+  (object: Record<string, any>) =>
+    object[key];
+
+export const seq = (from: number, to: number) =>
+  Array.from(Array(to - from + 1), (_, i) => from + i);
+
 export const unique = (array: any[]) => Array.from(new Set(array));
 
 export const times = (y: number) => (x: number) => y * x;
@@ -21,6 +33,12 @@ export const product = (x: number, y: number) => x * y;
 export const isEmpty = (object: object) => Object.keys(object).length === 0;
 export const toJSON = (x: any) => JSON.stringify(x);
 export const fromJSON = (x: any) => JSON.parse(x);
+
+export const intToChar = (integer: number) => String.fromCharCode(integer + 97);
+export const tagKeys = (tag: string) => (object: object) =>
+  Object.fromEntries(
+    Object.entries(object).map(([key, value]) => [tag + key, value])
+  );
 
 export const match = <T>(array: T[], value: T) =>
   array.flatMap((element, index) => (element === value ? index : []));

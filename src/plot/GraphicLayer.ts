@@ -2,38 +2,38 @@ import { Accessor, createEffect } from "solid-js";
 import { Primitive } from "../primitives/Primitive";
 import { GraphicStack } from "./GraphicStack";
 
+type GraphicLayerOptions = {
+  inner: boolean;
+};
+
 export class GraphicLayer {
-  signals: { width: Accessor<number>; height: Accessor<number> };
+  width: Accessor<number>;
+  height: Accessor<number>;
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
 
   primitives: Primitive[];
 
-  constructor(
-    graphicStack: GraphicStack,
-    width: Accessor<number>,
-    height: Accessor<number>
-  ) {
+  constructor(graphicStack: GraphicStack, options: GraphicLayerOptions) {
     this.primitives = [];
-    this.signals = { width, height };
+
+    const size = graphicStack.handlers.size;
+    this.width = options.inner ? size?.innerWidth : size?.outerWidth;
+    this.height = options.inner ? size?.innerHeight : size?.outerHeight;
 
     const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d")!;
     this.canvas = canvas;
-    this.context = context;
+    this.context = canvas.getContext("2d")!;
 
     createEffect(() => {
-      canvas.width = this.signals.width();
-      canvas.height = this.signals.height();
+      canvas.width = this.width();
+      canvas.height = this.height();
       this.draw();
     });
   }
 
-  static of = (
-    graphicStack: GraphicStack,
-    width: Accessor<number>,
-    height: Accessor<number>
-  ) => new GraphicLayer(graphicStack, width, height);
+  static of = (graphicStack: GraphicStack, options: GraphicLayerOptions) =>
+    new GraphicLayer(graphicStack, options);
 
   addPrimitive = (primitive: Primitive) => {
     this.primitives.push(primitive);
@@ -41,7 +41,7 @@ export class GraphicLayer {
   };
 
   draw = () => {
-    this.context.clearRect(0, 0, this.signals.width(), this.signals.height());
-    this.primitives.forEach((primitive) => primitive.draw());
+    this.context.clearRect(0, 0, this.width(), this.height());
+    this.primitives.forEach((primitive) => primitive.draw(this.context));
   };
 }

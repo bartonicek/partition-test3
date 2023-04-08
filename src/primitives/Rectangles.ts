@@ -1,5 +1,5 @@
 import { Accessor } from "solid-js";
-import { globals } from "../globalpars";
+import { graphicParameters } from "../graphicParameters";
 import { Options, XYScale } from "../types";
 import { withAlpha } from "../utils/graphicfuns";
 import { Primitive } from "./Primitive";
@@ -9,7 +9,6 @@ export class Rectangles implements Primitive {
   y0: Accessor<number[]>;
   x1: Accessor<number[]>;
   y1: Accessor<number[]>;
-  context: CanvasRenderingContext2D;
   scales: XYScale;
   options: Options;
 
@@ -18,7 +17,6 @@ export class Rectangles implements Primitive {
     y0: Accessor<number[]>,
     x1: Accessor<number[]>,
     y1: Accessor<number[]>,
-    context: CanvasRenderingContext2D,
     scales: XYScale,
     options?: Partial<Options>
   ) {
@@ -26,9 +24,8 @@ export class Rectangles implements Primitive {
     this.y0 = y0;
     this.x1 = x1;
     this.y1 = y1;
-    this.context = context;
     this.scales = scales;
-    this.options = Object.assign({}, globals, options);
+    this.options = Object.assign({}, graphicParameters, options);
   }
 
   static of = (
@@ -36,13 +33,12 @@ export class Rectangles implements Primitive {
     y0: Accessor<number[]>,
     x1: Accessor<number[]>,
     y1: Accessor<number[]>,
-    context: CanvasRenderingContext2D,
     scales: XYScale,
     options?: Partial<Options>
-  ) => new Rectangles(x0, y0, x1, y1, context, scales, options);
+  ) => new Rectangles(x0, y0, x1, y1, scales, options);
 
-  draw = () => {
-    const { x0, y0, x1, y1, context, scales } = this;
+  draw = (context: CanvasRenderingContext2D) => {
+    const { x0, y0, x1, y1, scales } = this;
     const { colour, alpha } = this.options;
     const { canvas } = context;
 

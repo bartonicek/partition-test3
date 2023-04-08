@@ -1,41 +1,36 @@
 import { Accessor } from "solid-js";
-import { globals } from "../globalpars";
-import { ScaleContinuous } from "../scales/ScaleContinuous";
-import { Options } from "../types";
+import { graphicParameters } from "../graphicParameters";
+import { Options, XYScale } from "../types";
 import { Primitive } from "./Primitive";
 import { withAlpha } from "../utils/graphicfuns";
 
 export class Line implements Primitive {
   x: Accessor<number[]>;
   y: Accessor<number[]>;
-  scales: { x: ScaleContinuous; y: ScaleContinuous };
-  context: CanvasRenderingContext2D;
+  scales: XYScale;
   options: Options;
 
   constructor(
     x: Accessor<number[]>,
     y: Accessor<number[]>,
-    context: CanvasRenderingContext2D,
-    scales: { x: ScaleContinuous; y: ScaleContinuous },
+    scales: XYScale,
     options?: Partial<Options>
   ) {
     this.x = x;
     this.y = y;
     this.scales = scales;
-    this.context = context;
-    this.options = Object.assign({}, globals, options);
+    this.options = Object.assign({}, graphicParameters, options);
   }
 
   static of = (
     x: Accessor<number[]>,
     y: Accessor<number[]>,
-    context: CanvasRenderingContext2D,
-    scales: { x: ScaleContinuous; y: ScaleContinuous },
+    scales: XYScale,
     options?: Partial<Options>
-  ) => new Line(x, y, context, scales, options);
+  ) => new Line(x, y, scales, options);
 
-  draw = () => {
-    const { x, y, context } = this;
+  draw = (context: CanvasRenderingContext2D) => {
+    const { x, y } = this;
     const { colour, alpha, width } = this.options;
     const { canvas } = context;
 

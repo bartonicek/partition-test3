@@ -1,13 +1,13 @@
+import { Accessor } from "solid-js";
 import { Scale } from "../scales/Scale";
 
 export type Primitive = {
-  context: CanvasRenderingContext2D;
   scales: { x: Scale<any>; y: Scale<any> };
-  draw: () => void;
-  x?: () => number[];
-  y?: () => number[];
-  x0?: () => number[];
-  y0?: () => number[];
-  x1?: () => number[];
-  y1?: () => number[];
+  draw: (context: CanvasRenderingContext2D) => void;
+  x?: Accessor<number[]>;
+  y?: Accessor<number[]>;
+  x0?: Accessor<number[]>;
+  y0?: Accessor<number[]>;
+  x1?: Accessor<number[]>;
+  y1?: Accessor<number[]>;
 };

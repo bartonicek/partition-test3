@@ -1,8 +1,7 @@
 import { Accessor, createSignal, onMount } from "solid-js";
-import { globals } from "../globalpars";
+import { graphicParameters } from "../graphicParameters";
 import { GraphicStack } from "../plot/GraphicStack";
 import { flow, just, times, toInt } from "../utils/funs";
-import { CSS, CSSHeight, CSSWidth } from "../utils/graphicfuns";
 import { Tuple4 } from "../types";
 
 export class SizeHandler {
@@ -11,10 +10,10 @@ export class SizeHandler {
   margins: Tuple4<Accessor<number>>;
 
   constructor(graphicStack: GraphicStack) {
-    this.outerWidth = graphicStack.signals.width;
-    this.outerHeight = graphicStack.signals.height;
-    this.margins = globals.marginLines.map(
-      flow(times(globals.fontsize), just)
+    this.outerWidth = graphicStack.localSignals.width;
+    this.outerHeight = graphicStack.localSignals.height;
+    this.margins = graphicParameters.marginLines.map(
+      flow(times(graphicParameters.fontsize), just)
     ) as Tuple4<Accessor<number>>;
   }
 

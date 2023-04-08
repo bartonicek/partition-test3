@@ -51,9 +51,7 @@ export class ScaleContinuous implements Scale<number> {
 
   pushforward = (values: number[]) => {
     const { domain, codomain, domainRange, codomainRange } = this;
-
     return values.map((value) => {
-      // if (value < domain[0] || value > domain[1]) return;
       return codomain[0] + ((value - domain[0]) / domainRange) * codomainRange;
     });
   };
@@ -61,7 +59,6 @@ export class ScaleContinuous implements Scale<number> {
   pullback = (values: number[]) => {
     const { domain, codomain, domainRange, codomainRange } = this;
     return values.map((value) => {
-      // if (value < codomain[0] || value > codomain[1]) return;
       return domain[0] + ((value - codomain[0]) / codomainRange) * domainRange;
     });
   };

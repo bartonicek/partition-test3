@@ -8,6 +8,7 @@ import {
   reduceAt,
   subset,
 } from "../utils/funs";
+import { Reducer } from "../types";
 
 const partitionNames = ["whole", "object", "mark", "d", "e", "f"];
 type FactorRecord = { [key: string]: Accessor<string[] | number[]> };
@@ -26,7 +27,7 @@ export class Part {
     labels: Record<string, any>,
     parent?: Part
   ) {
-    this.tag = (parent?.tag ? parent.tag + "." : "") + tag;
+    this.tag = `_` + tag;
     this.parent = parent;
     this.indices = indices;
     this.ownLabels = labels;
